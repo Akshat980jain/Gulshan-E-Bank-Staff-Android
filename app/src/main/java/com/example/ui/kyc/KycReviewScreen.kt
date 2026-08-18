@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AssignmentInd
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -59,6 +60,13 @@ fun KycReviewScreen(onBack: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KycListScreen(onBack: () -> Unit, onApplicantSelected: (KycApplicant) -> Unit) {
+    var searchQuery by remember { mutableStateOf("") }
+    
+    val filteredApplicants = dummyApplicants.filter {
+        it.name.contains(searchQuery, ignoreCase = true) || 
+        it.idType.contains(searchQuery, ignoreCase = true)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,13 +85,32 @@ fun KycListScreen(onBack: () -> Unit, onApplicantSelected: (KycApplicant) -> Uni
         },
         containerColor = Color(0xFFF8F9FA)
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(dummyApplicants.size) { index ->
-                val applicant = dummyApplicants[index]
+        Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                placeholder = { Text("Search by name or ID type...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF2563EB),
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White
+                )
+            )
+            
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(filteredApplicants.size) { index ->
+                    val applicant = filteredApplicants[index]
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -114,6 +141,7 @@ fun KycListScreen(onBack: () -> Unit, onApplicantSelected: (KycApplicant) -> Uni
             }
         }
     }
+}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
